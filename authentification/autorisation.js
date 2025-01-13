@@ -26,6 +26,8 @@ export const autorisation = (roles = []) => {
       const userRole = req.user.role;
       Role.findOne({ where: { name: userRole } })
         .then(role => {
+          //If the user’s role is not authorized, 
+          // it denies access with a 403 Forbidden response.
           if (!roles.includes(role.name)) {
             return res.status(403).send('You do not have permission to perform this action');
           }

@@ -1,46 +1,53 @@
 import User from '../models/user.js';
-import validationRegister from '../validations/validationRegister.js';
-import validationLogin from '../validations/validationLogin.js';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 
-// Inscription d'un utilisateur
-export const registerUser = async (req, res) => {
-  const { error } = validationRegister(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
-
-  const emailExist = await User.findOne({ where: { email: req.body.email } });
-  if (emailExist) return res.status(400).send('Email already exists');
-
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(req.body.password, salt);
-
-  const user = new User({
-    username: req.body.username,
-    email: req.body.email,
-    password: hashedPassword,
-    role_id: 1 // Rôle par défaut
-  });
-
+// Retrieve all users
+export const getAllUsers = async (req, res) => {
   try {
-    const savedUser = await user.save();
-    res.send({ user: user.id });
-  } catch (err) {
-    res.status(400).send(err);
+    const users = await User.findAll();
+    if (!users || users.length === 0) return res.status(404).json({ message: 'No users found' });
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching users', error });
   }
 };
 
-// Connexion d'un utilisateur
-export const loginUser = async (req, res) => {
-  const { error } = validationLogin(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+// Retrieve a specific user by ID
+export const getUserById = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching user', error });
+  }
+};
 
-  const user = await User.findOne({ where: { email: req.body.email } });
-  if (!user) return res.status(400).send('Email is not found');
+// Update a user's information
+export const updateUser = async (req, res) => {
+  try {
+    console.log('Updating user with ID:', req.params.id);
+    console.log('Request body:', req.body);
+    const updatedUser = await User.update(req.body, {
+      where: { id: req.params.id },
+    });
+    console.log('Update Result:', updatedUser); // Debug update result
 
-  const validPass = await bcrypt.compare(req.body.password, user.password);
-  if (!validPass) return res.status(400).send('Invalid password');
+    if (!updatedUser[0]) return res.status(404).json({ message: 'User not found' });
+    res.status(200).json({ message: 'User updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating user', error });
+  }
+};
 
-  const token = jwt.sign({ id: user.id }, process.env.CODE_SECRET);
-  res.header('authorization', token).send(token);
+// Delete a user
+export const deleteUser = async (req, res) => {
+  try {
+    const deletedUser = await User.destroy({
+      where: { id: req.params.id },
+    });
+    if (!deletedUser) return res.status(404).json({ message: 'User not found' });
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting user', error });
+  }
 };

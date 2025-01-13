@@ -15,23 +15,23 @@ import testimonialsRoute from './routes/testimonials.js';
 import authRoutes from './routes/auth.js'; 
 import userRoute from './routes/users.js';
 
-// Synchroniser la base de données
+// synchronizes the Sequelize models with the database
 database.sync({ alter: true });
 
 const app = express();
 
 // Utilisation des modules importes
-app.use(cors());
-app.use(compression());
-app.use(helmet());
-app.use(bodyParser.json());
+app.use(cors());//Ensures API can handle requests from different origins.
+app.use(compression());//Optimizes API response sizes.
+app.use(helmet());//Adds security headers to your API.
+app.use(bodyParser.json());//Parses incoming JSON and URL-encoded data.
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// Définir les routes
+// Définir les routes/endpoints
 app.use('/api/testimonials', testimonialsRoute);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoute);
-app.use('/public', express.static('public'));
+app.use('/public', express.static('public'));//for serving static files like images or other assets.
 
 const port = 5000;
 

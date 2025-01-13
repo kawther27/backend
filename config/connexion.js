@@ -14,6 +14,11 @@ const database = new Sequelize
   port: process.env.DB_PORT,
   logging: false,
 });
+//testing connction
+database.authenticate()
+  .then(() => console.log('Database connected successfully.'))
+  .catch(err => console.error('Database connection failed:', err));
+
 
 export default database;
 
